@@ -10,24 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Find ZIP
-        run: |
-          ls -la
-          unzip -l RpKeyboard.zip
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Unpack project
         run: |
           mkdir -p RpKeyboard
           unzip -oq RpKeyboard.zip -d RpKeyboard
 
-      - name: Find project files
+      - name: Build APK
         run: |
-          find . -maxdepth 8 -type f \( \
-            -name "settings.gradle" -o \
-            -name "settings.gradle.kts" -o \
-            -name "build.gradle" -o \
-            -name "build.gradle.kts" \
-          \) -print
+          cd RpKeyboard/RpKeyboard
+          gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RpKeyboard-apk
+          path: RpKeyboard/RpKeyboard/app/build/outputs/apk/debug/app-debug.apk
